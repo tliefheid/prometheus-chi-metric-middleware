@@ -81,15 +81,15 @@ func NewMiddleware(opt Options) *Instance {
 func (i *Instance) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		ww := middleware.NewWrapResponseWriter(rw, r.ProtoMajor)
-		next.ServeHTTP(ww, r)
+		wrap := middleware.NewWrapResponseWriter(rw, r.ProtoMajor)
+		next.ServeHTTP(wrap, r)
 
 		rctx := chi.RouteContext(r.Context())
 		routePattern := strings.Join(rctx.RoutePatterns, "")
 		path := strings.Replace(routePattern, "/*/", "/", -1)
 
-		i.reqCount.WithLabelValues(strconv.Itoa(ww.Status()), path).Inc()
+		i.reqCount.WithLabelValues(strconv.Itoa(wrap.Status()), path).Inc()
 		i.reqDuration.WithLabelValues(path).Observe(float64(time.Since(start).Nanoseconds()))
-		i.respSize.WithLabelValues(path).Observe(float64(ww.BytesWritten()))
+		i.respSize.WithLabelValues(path).Observe(float64(wrap.BytesWritten()))
 	})
 }
