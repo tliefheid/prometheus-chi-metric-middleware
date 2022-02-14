@@ -13,13 +13,13 @@ import (
 )
 
 type Options struct {
-	disableRequestCounter   bool
-	disableRequestDurations bool
-	disableResponseSize     bool
+	DisableRequestCounter   bool
+	DisableRequestDurations bool
+	DisableResponseSize     bool
 	Namespace               string
 	Subsystem               string
 	ConstLabels             map[string]string
-	debug                   bool
+	Debug                   bool
 }
 
 type Instance struct {
@@ -34,10 +34,10 @@ type Instance struct {
 
 func NewMiddleware(opt Options) *Instance {
 	i := new(Instance)
-	i.disableRequestCounter = opt.disableRequestCounter
-	i.disableRequestDurations = opt.disableRequestDurations
-	i.disableResponseSize = opt.disableResponseSize
-	i.debug = opt.debug
+	i.disableRequestCounter = opt.DisableRequestCounter
+	i.disableRequestDurations = opt.DisableRequestDurations
+	i.disableResponseSize = opt.DisableResponseSize
+	i.debug = opt.Debug
 
 	if !i.disableRequestCounter {
 		i.reqCount = prometheus.NewCounterVec(
