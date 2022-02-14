@@ -90,7 +90,8 @@ func (i *Instance) Handler(next http.Handler) http.Handler {
 
 		rctx := chi.RouteContext(r.Context())
 		routePattern := strings.Join(rctx.RoutePatterns, "")
-		path := strings.Replace(routePattern, "/*/", "/", -1)
+		path := strings.ReplaceAll(routePattern, "//", "/")
+		path = strings.Replace(path, "/*/", "/", -1)
 		if i.debug {
 			fmt.Printf("Handle metrics function\nRoutePattern: %+v\nPath: %v\nStatusCode: %v\n", routePattern, path, wrap.Status())
 		}
