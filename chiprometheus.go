@@ -1,13 +1,14 @@
 package chiprometheus
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -18,6 +19,7 @@ type Options struct {
 	Namespace               string
 	Subsystem               string
 	ConstLabels             map[string]string
+	debug                   bool
 }
 
 type Instance struct {
@@ -27,6 +29,7 @@ type Instance struct {
 	disableRequestCounter   bool
 	disableRequestDurations bool
 	disableResponseSize     bool
+	debug                   bool
 }
 
 func NewMiddleware(opt Options) *Instance {
@@ -34,6 +37,7 @@ func NewMiddleware(opt Options) *Instance {
 	i.disableRequestCounter = opt.disableRequestCounter
 	i.disableRequestDurations = opt.disableRequestDurations
 	i.disableResponseSize = opt.disableResponseSize
+	i.debug = opt.debug
 
 	if !i.disableRequestCounter {
 		i.reqCount = prometheus.NewCounterVec(
@@ -87,7 +91,9 @@ func (i *Instance) Handler(next http.Handler) http.Handler {
 		rctx := chi.RouteContext(r.Context())
 		routePattern := strings.Join(rctx.RoutePatterns, "")
 		path := strings.Replace(routePattern, "/*/", "/", -1)
-
+		if i.debug {
+			fmt.Printf("Handle metrics function\nRoutePattern: %+v\nPath: %v\nStatusCode: %v\n", routePattern, path, wrap.Status())
+		}
 		i.reqCount.WithLabelValues(strconv.Itoa(wrap.Status()), path).Inc()
 		i.reqDuration.WithLabelValues(path).Observe(float64(time.Since(start).Nanoseconds()))
 		i.respSize.WithLabelValues(path).Observe(float64(wrap.BytesWritten()))
