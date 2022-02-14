@@ -13,9 +13,13 @@ go get github.com/TomL-dev/prometheus-chi-metric-middleware
 ## Usage
 
 ```go
+import (
+	chiprometheus "github.com/TomL-dev/prometheus-chi-metric-middleware"
+)
+
 r := chi.NewRouter()
 
-metricMiddleware := chiprometheus.NewMiddleware(metrics.Options{
+metricMiddleware := chiprometheus.NewMiddleware(chiprometheus.Options{
 	Namespace: "mock",
 })
 
