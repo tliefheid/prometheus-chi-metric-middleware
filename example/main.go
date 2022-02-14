@@ -7,7 +7,7 @@ import (
 	"time"
 
 	chiprometheus "github.com/TomL-dev/prometheus-chi-metric-middleware"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -40,6 +40,8 @@ func main() {
 		randomSleep()
 		w.WriteHeader(http.StatusNotFound)
 	})
+	f := NewFoo()
+	r.Get("/*", f.handler)
 
 	fmt.Println("start webserver on port 8080")
 	http.ListenAndServe("127.0.0.1:8080", r)
@@ -48,4 +50,19 @@ func main() {
 func randomSleep() {
 	sleep := rand.Intn(200) + 1
 	time.Sleep(time.Duration(sleep) * time.Millisecond)
+}
+
+type foo struct {
+	bar string
+}
+
+func NewFoo() *foo {
+	f := new(foo)
+	f.bar = "foobar"
+	return f
+}
+
+func (f *foo) handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.URL.String())
+	w.Write([]byte("done"))
 }
