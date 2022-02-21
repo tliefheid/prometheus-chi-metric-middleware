@@ -95,8 +95,14 @@ func (i *Instance) Handler(next http.Handler) http.Handler {
 		if i.debug {
 			fmt.Printf("Handle metrics function\nRoutePattern: %+v\nPath: %v\nStatusCode: %v\n", routePattern, path, wrap.Status())
 		}
-		i.reqCount.WithLabelValues(strconv.Itoa(wrap.Status()), path).Inc()
-		i.reqDuration.WithLabelValues(path).Observe(float64(time.Since(start).Nanoseconds()))
-		i.respSize.WithLabelValues(path).Observe(float64(wrap.BytesWritten()))
+		if !i.disableRequestCounter {
+			i.reqCount.WithLabelValues(strconv.Itoa(wrap.Status()), path).Inc()
+		}
+		if !i.disableRequestDurations {
+			i.reqDuration.WithLabelValues(path).Observe(float64(time.Since(start).Nanoseconds()))
+		}
+		if !i.disableResponseSize {
+			i.respSize.WithLabelValues(path).Observe(float64(wrap.BytesWritten()))
+		}
 	})
 }
