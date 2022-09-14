@@ -96,7 +96,11 @@ func (i *Instance) Handler(next http.Handler) http.Handler {
 			fmt.Printf("Handle metrics function\nRoutePattern: %+v\nPath: %v\nStatusCode: %v\n", routePattern, path, wrap.Status())
 		}
 		if !i.disableRequestCounter {
-			i.reqCount.WithLabelValues(strconv.Itoa(wrap.Status()), path).Inc()
+			status := wrap.Status()
+			if status == 0 {
+				status = 200
+			} // assume that we got a 200
+			i.reqCount.WithLabelValues(strconv.Itoa(status), path).Inc()
 		}
 		if !i.disableRequestDurations {
 			i.reqDuration.WithLabelValues(path).Observe(float64(time.Since(start).Nanoseconds()))
