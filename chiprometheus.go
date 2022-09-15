@@ -87,28 +87,28 @@ func (i *Instance) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		wrap := middleware.NewWrapResponseWriter(rw, r.ProtoMajor)
-		defer func(ctx context.Context) {
-			rctx := chi.RouteContext(ctx)
-			routePattern := strings.Join(rctx.RoutePatterns, "")
-			path := strings.ReplaceAll(routePattern, "//", "/")
-			path = strings.Replace(path, "/*/", "/", -1)
-
-			if i.debug {
-				fmt.Printf("Handle metrics function\nRoutePattern: %+v\nPath: %v\nStatusCode: %v\n", routePattern, path, wrap.Status())
-			}
-
-			if !i.disableRequestCounter {
-				i.reqCount.WithLabelValues(strconv.Itoa(wrap.Status()), path).Inc()
-			}
-			if !i.disableRequestDurations {
-				i.reqDuration.WithLabelValues(path).Observe(float64(time.Since(start).Nanoseconds()))
-			}
-			if !i.disableResponseSize {
-				i.respSize.WithLabelValues(path).Observe(float64(wrap.BytesWritten()))
-			}
-		}(r.Context())
-
 		next.ServeHTTP(wrap, r)
 
+		rctx := chi.RouteContext(r.Context())
+		routePattern := strings.Join(rctx.RoutePatterns, "")
+		path := strings.ReplaceAll(routePattern, "//", "/")
+		path = strings.Replace(path, "/*/", "/", -1)
+		if i.debug {
+			fmt.Printf("Handle metrics function\nRoutePattern: %+v\nPath: %v\nStatusCode: %v\n", routePattern, path, wrap.Status())
+		}
+		if !i.disableRequestCounter {
+			status := wrap.Status()
+			if status == 0 {
+				// we can safely assume this, cause chi will write a 200 if no header is set
+				status = http.StatusOK
+			}
+			i.reqCount.WithLabelValues(strconv.Itoa(status), path).Inc()
+		}
+		if !i.disableRequestDurations {
+			i.reqDuration.WithLabelValues(path).Observe(float64(time.Since(start).Nanoseconds()))
+		}
+		if !i.disableResponseSize {
+			i.respSize.WithLabelValues(path).Observe(float64(wrap.BytesWritten()))
+		}
 	})
 }
