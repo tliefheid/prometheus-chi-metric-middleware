@@ -1,7 +1,6 @@
 package chiprometheus
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strconv"
