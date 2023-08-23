@@ -57,9 +57,9 @@ func NewMiddleware(opt Options) *Instance {
 			prometheus.HistogramOpts{
 				Namespace:   opt.Namespace,
 				Subsystem:   opt.Subsystem,
-				Name:        "http_request_duration_nanoseconds",
+				Name:        "http_request_duration_milliseconds",
 				Help:        "Histogram of latencies for HTTP requests.",
-				Buckets:     []float64{.1, .2, .4, 1, 3, 8, 20, 60, 120},
+				Buckets:     []float64{1, 5, 10, 25, 50, 100, 250, 500, 1000},
 				ConstLabels: opt.ConstLabels,
 			},
 			[]string{"path"})
@@ -104,7 +104,7 @@ func (i *Instance) Handler(next http.Handler) http.Handler {
 			i.reqCount.WithLabelValues(strconv.Itoa(status), path).Inc()
 		}
 		if !i.disableRequestDurations {
-			i.reqDuration.WithLabelValues(path).Observe(float64(time.Since(start).Nanoseconds()))
+			i.reqDuration.WithLabelValues(path).Observe(float64(time.Since(start).Milliseconds()))
 		}
 		if !i.disableResponseSize {
 			i.respSize.WithLabelValues(path).Observe(float64(wrap.BytesWritten()))
