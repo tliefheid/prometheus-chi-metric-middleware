@@ -44,7 +44,10 @@ func main() {
 	r.Get("/*", f.handler)
 
 	fmt.Println("start webserver on port 8080")
-	http.ListenAndServe("127.0.0.1:8080", r)
+	err := http.ListenAndServe("127.0.0.1:8080", r)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func randomSleep() {
