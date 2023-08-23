@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	chiprometheus "github.com/TomL-dev/prometheus-chi-metric-middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	chiprometheus "github.com/tliefheid/prometheus-chi-metric-middleware"
 )
 
 func main() {
